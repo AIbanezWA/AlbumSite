@@ -1,0 +1,106 @@
+﻿@{
+    ViewData["Title"] = "Albunes";
+
+    var albumList = new SelectList(Model, "Id", "Title");
+}
+
+@model AlbumSite.Models.AlbumsModel;
+
+<div class="text-center">
+    <h1 class="display-4">Listado de Albunes</h1>
+    <p>Sitio creado <a href="https://docs.microsoft.com/aspnet/core">con ASP.NET Core</a>.</p>
+</div>
+<div>
+
+    <label>Lista de Albunes:</label> <br />
+    <select id="albumList" asp-items="albumList">
+    </select>
+    <button id="albumButton"> Visualizar Albúm </button>
+
+    <br /><br />
+    <label>Lista de Fotos</label> <br />
+<table>
+    <tr>
+        <td>
+            <table id="albumsTable" border="1">
+                <thead>
+                    <tr>
+                        <td style="width:20%;text-align:center">Título</td>
+                        <td style="width:40%;text-align:center">Imagen</td>
+                        <td style="width:20%;text-align:center">Thumbnail</td>
+                        <td style="width:20%;text-align:center">Comentarios</td>
+                    </tr>
+                </thead>
+                <tbody id="tbodyAlbums">
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td> </td>
+    </tr>
+    <tr>
+      <td>Comentarios</td>
+    </tr>
+    <tr>
+        <td>
+            <table id="CommentsTable" border="1">
+                <thead>
+                    <tr>
+                        <td style="width:20%;text-align:center">Nombre</td>
+                        <td style="width:20%;text-align:center">Email</td>
+                        <td style="width:30%;text-align:center">Contenido</td>
+                    </tr>
+                </thead>
+                <tbody id="tbodyComments">
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</table>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+
+        $("#albumButton").click(function (data) {
+            let act = $("#albumList").val();
+            $.getJSON("@Url.Action("GetPhotos", "Home")", { albumId: act })
+                .done(function (response) {
+                    $("#tbodyAlbums").empty();
+                    jQuery.each(response, function (index, value) {
+                        let trId = 'tr_' + index;
+                        $("#tbodyAlbums").append('<tr id =' + trId + '>');
+                        $("#" + trId).append('<td>' + value.title + '</td>');
+                        $("#" + trId).append('<td align=center> <img src="' + value.url + '" width=120px;heigh=160px;/></td>');
+                        $("#" + trId).append('<td align=center> <img src="' + value.thumbnailUrl + '" width=75px;heigh=75px;/></td>');
+                        $("#" + trId).append('<td align=center> <button attrimgId=' + value.id + ' type="button" class="popupbutton btn btn-info navbutton"> Ver Comentarios </button> </td>');
+                        $("#tbodyAlbums").append('</tr>');
+                    });
+                })
+        })
+
+        $("body").on("click", ".popupbutton", function () {
+            //debugger;
+            let imageId = $(this).attr("attrimgId");
+
+            $.getJSON("@Url.Action("GetComments", "Home")", { postId: imageId })
+                .done(function (response) {
+                    $("#tbodyComments").empty();
+
+                    jQuery.each(response, function (index, value) {
+                        let trId = 'trc_' + index + '' + imageId;
+                        $("#tbodyComments").append('<tr id =' + trId + '>');
+                        $("#" + trId).append('<td> ' + value.name  + '</td>');
+                        $("#" + trId).append('<td> ' + value.email + '</td>');
+                        $("#" + trId).append('<td> ' + value.body  + '</td>');
+                        $("#tbodyComments").append('</tr>');
+                    })
+                })
+            });
+
+    })
+
+    
+</script>
